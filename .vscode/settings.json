@@ -1,0 +1,5 @@
+{
+    "python.autoComplete.extraPaths": [
+        "/home/valentin/Documents/manimations/.venv/lib/python3.14/site-packages"
+    ]
+}
