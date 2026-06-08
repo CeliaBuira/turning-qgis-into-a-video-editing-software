@@ -10,6 +10,7 @@ dependencies = [
     "matplotlib>=3.10.9",
     "opencv-python>=4.13.0.92",
     "pillow>=12.2.0",
+    "pygments>=2.20.0",
     "pyproj>=3.7.2",
     "pyside6>=6.11.1",
     "shapely>=2.1.2",

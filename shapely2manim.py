@@ -71,8 +71,22 @@ g = shapely.transform( g, vec ,  interleaved=False)
 
 plotting.plot_polygon(g)
 vertices_3d = [(x, y, 0.0) for x, y in g.exterior.coords]
-
+print(vertices_3d)
 p = Polygon(*vertices_3d) 
+
+
+def manim2shapely(polygon:Polygon) -> shapely.geometry:
+    return shapely.Polygon(polygon.get_vertices())
+    #return Polygon(*vertices_3d) 
+
+def shapely2manim(geometry: shapely.Geometry)-> Polygon:
+    vertices_3d = [(x, y, 0.0) for x, y in geometry.exterior.coords]
+    return Polygon(*vertices_3d)
+
+
+def add_z(point2d):
+    return np.array([*point2d, 0.0])
+
 
 
 class SimpleScene(Scene):
