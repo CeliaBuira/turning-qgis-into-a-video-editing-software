@@ -1,8 +1,11 @@
 # def main():
 #     print("Hello from manimations!")
 
+from pathlib import Path
 from statistics import mean
 from textwrap import wrap
+
+from PySide2.QtGui import QVector2D, QVector3D
 
 from manim import *  # or: from manimlib import *
 from manim_slides import Slide
@@ -20,6 +23,36 @@ switzerland = [(0.13558678567707005, -0.840876415892391, 0.0), (0.34989056837453
 FREYA_BLUE = "#32bcfd"
 FREYA_YELLOW = "#14fda5"
 FREYA_RED = "#fc1153"
+
+def lerp(a: float, b: float, t: float) -> float:
+    """Linear interpolate on the scale given by a to b, using t as the point on that scale.
+    Examples
+    --------
+        50 == lerp(0, 100, 0.5)
+        4.2 == lerp(1, 5, 0.8)
+    """
+    return (1 - t) * a + t * b
+
+def to_circle(geometry: Polygon, t: float=1):
+    centroid = geometry.get_center()
+    
+    vertices = [v for v in geometry.get_vertices()]
+    # vertices_as_geom = [QgsGeometry(v) for v in geometry.vertices()]
+    
+    np.linalg.norm()
+    # distance_centroid_vertex = [v.distance(centroid) for v in vertices_as_geom]
+    distance_centroid_vertex = [np.linalg.norm(v, centroid) for v in vertices]
+
+    average = goal = mean(distance_centroid_vertex)
+    
+    
+    vectors = [QVector2D( v.toQPointF() - centroid.asQPointF()) for v in vertices]
+    
+    vectors = [vector.normalized() * lerp(original_dist, goal, t) for vector, original_dist in zip(vectors, distance_centroid_vertex)]
+    end_vertices = [QgsPointXY(centroid.asQPointF() + final_vector.toPointF()) for final_vector in vectors]
+    
+    polygon = QgsGeometry.fromPolygonXY([end_vertices])
+    return polygon
 
 @dataclass
 class VideoStatus:
@@ -102,13 +135,24 @@ ALL SLIDE
 
 * summary
 * to circle
+    - loop
+    - distance centroid vertex
+    - interpolation lerp
+    - put everything in a python expression and use in a geometry generator
 * control t value
-    - evolution chaque steps
-* Common goal (animate a line, point along a line, )
+    - evolution chaque steps (simple t as a pct, only sin, add thin line, )
+    - with variable
+    - Show failure 
+    - Explain the workflow with video qgis/blender/Desmos
+* Common goal (animate a line, point along a line,apparition, buffer )
+* Common goal keyframing
+* Push QGIS to the limit to highlight it's flaw( Eats your own dogs ):
+    - eye for symbologie  funded by QGIS.ch, thanks you ! 
+    - keyframe (Stoneage of the motion graphic software ) - add mockup
+    - eventuellement list tool les problemes 
+    - eventuellement lister toutes les choses faites
 *what's next ? call for help
 * le rab (freya etc..)
-
-    
 """
 
 class BasicExample(Slide):
@@ -191,7 +235,7 @@ class BasicExample(Slide):
         self.wait()
 
         
-        self.next_slide(skip_animations=SKIP_ANIMATIONS)
+        self.next_slide(skip_animations=False)
 
 
         lines_grp = VGroup()
@@ -209,8 +253,8 @@ class BasicExample(Slide):
 
 
 
-        # if SKIP_ANIMATIONS:
-        #     lengths = lengths[0:7]
+        if SKIP_ANIMATIONS:
+            lengths = lengths[0:7]
 
 
 
@@ -274,7 +318,7 @@ class BasicExample(Slide):
             ]
 
         self.wait()
-        self.next_slide(loop=False)
+        self.next_slide(loop=False, skip_animations=False)
 
         # self.clear()
 
@@ -302,22 +346,96 @@ class BasicExample(Slide):
                             path_arc=PI/2,
                             #  path_arc_centers=lambda p0, p1: np.array([0, 0, 0])
                              ))
-        self.remove(avg_line2)
+        
         self.add(avg_circle)
         self.wait()
         
 
 
-
-
-
-        self.next_slide()
+        self.next_slide(skip_animations=False)
 
         # LERP 
-
+        self.remove(avg_line)
+        self.remove(avg_line2)
         self.remove(chart)
         self.remove(lines_grp)
+        
+
+        title_lerp = MarkupText("<i><b>L</b></i>inear int<i><b>erp</b></i>olation aka Lerp")
+        title_lerp.to_edge(UP)
+        self.add(title_lerp)
+
+
+        nb_line = NumberLine(
+            x_range=[-10, 10, 2],
+            unit_size=0.5,
+            numbers_with_elongated_ticks=[-2, 4],
+            include_ticks=True,
+            # numbers_to_include=[-8, 8],
+            include_numbers=False,
+            font_size=24,
+        )
+        nb_line.get_tick(-8)
+        nb_line.get_tick(4)
+
+        nb_line.scale(0.5)
+        nb_line.to_edge(RIGHT)
+
+        a_nb = -8
+        b_nb = 8
+        a_point = Dot(nb_line.n2p(a_nb), color=FREYA_RED)
+        b_point = Dot(nb_line.n2p(b_nb), color=FREYA_BLUE)
+        
+
+        equation = MathTex(r"lerp(a, b, t) = a + t * (b-a)",     tex_to_color_map={
+        "a": FREYA_RED,
+        "b": FREYA_BLUE,
+        "t": FREYA_YELLOW
+    })
+        equation.next_to(nb_line, UP)
+
+
+        self.add(equation)
+        self.add(nb_line)
+        self.play(Create(a_point), Create(b_point))
+
+        t_tracker = ValueTracker(0)
+
+        def t_text_callback():
+            txt = MathTex(f"t={round(t_tracker.get_value(), 2)}")
+            txt.set_color(FREYA_YELLOW)
+            txt.next_to( nb_line.n2p( lerp( a_nb, b_nb, t_tracker.get_value() ) ), DOWN )
+            return txt
+        
+        t_text = always_redraw(
+            t_text_callback
+        )
+        t_dot = always_redraw(
+            lambda: Dot(
+                point= utils.bezier.interpolate(a_point.get_center(), b_point.get_center(), t_tracker.get_value()),
+                color= core.interpolate_color(ManimColor(FREYA_RED), ManimColor(FREYA_BLUE), t_tracker.get_value() )
+            )
+        )
+
+
+        self.add(t_text)
+
+        self.add(t_dot)
+        self.play(t_tracker.animate.set_value(1), run_time=3)
+
+
+
+
         self.wait()
+        self.next_slide(skip_animations=False)
+
+        
+        self.play(Transform(title_lerp, Text("Put everything in an expression")))
+
+        self.wait()
+
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
+
 
 
         expression_string ="""with_variable('scale_coord', 2 * PI() * 9,
@@ -368,7 +486,7 @@ with_variable('t',
         self.add(code_step_3)
 
         self.wait()
-        self.next_slide()
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
 
         expression_string = """with_variable('scale_coord', 2 * PI() * 9,
@@ -468,16 +586,137 @@ with_variable('t',
         self.add(code_step_4)
 
         self.wait()
-        self.next_slide(skip_animations=False)
-        self.wait()
 
+        self.next_slide(skip_animations=False)
 
         self.clear()
-        text = Text("what's next ?")
-        self.add(text)
+        whatsnext_text = Text("what's next ? I need your help\n if you know any of:").to_edge(UP)
+        self.add(whatsnext_text)
+
+        
+        presse_img_grp = Group()
+        presse_path = Path("./images/presse")
+        for f in presse_path.iterdir():
+            if f.suffix.lower() in [".png", ".jpg"]:
+                g = Group()
+                img = ImageMobject(f.absolute()).scale_to_fit_height(0.8)
+                rect = RoundedRectangle(corner_radius=0.005, width=img.width, height=img.height, stroke_width=0)
+                rect.set_fill(WHITE)
+                rect.set_opacity(1)
+                
+
+                g.add(rect)
+                g.add(img)
+
+                print(f.absolute())
+                presse_img_grp.add( g ) 
+
+
+
+
+        presse_img_grp.arrange_in_grid(rows=4, cols=4,  buff=0.20).scale(0.8)
+        presse_img_grp.next_to(whatsnext_text, DOWN)
+
+        # and_so_on_text = Text("And so on ...")
+        # and_so_on_text.next_to(presse_img_grp, direction=DOWN,  aligned_edge=RIGHT)
+        # self.add(and_so_on_text)
+        
+        # p = f.absolute()
+        # print(p)
+        # img = ImageMobject(f.absolute())
+        self.add(presse_img_grp)
+        # self.play(Create(presse_img_grp))
+        # for img in presse_img_grp:
+        #     self.add(img)
+        #     self.wait(0.2)
+
+        # self.play(Add(presse_img_grp),run_time=2)
+        # self.play(LaggedStart([Add(img, run_time=0.5) for img in presse_img_grp], lag_ratio=0.5) )
+        
+        
+        contacts_me = Text("Contact me at:")
+        contacts_me.next_to(presse_img_grp, DOWN)
+        # contacts_me.align_to(whatsnext_text, LEFT)
+        self.add(contacts_me)
+        
+        contacts = VGroup()
+        contacts.add(Text("valentin@opengis.ch"))
+        contacts.add(Text("valentin.buira@gmail.com"))
+        contacts.add(Text("Valentin Buira on Linkedin"))
+        contacts.add(Text("@cbuira.xyz on tiktok/instagram"))
+
+        contacts.arrange(direction=DOWN, aligned_edge=LEFT)
+        contacts.next_to(contacts_me, DOWN)
+        contacts.scale(0.6)
+
+        self.add(contacts)
+
+        # self.add(presse_img_grp)
+
+        # self.play(Create(presse_img_grp))
+
+
+        # valentin@opengis.ch
+
+        # Valentin Buira Linkedin
+        # valentin.buira@gmail.com -> legacy
+        # cbuira.xyz mastodon/tiktok/instagram
 
         self.wait()
         self.next_slide(skip_animations=False)
+
+        self.clear()
+
+        my_workflow_text = Text("My workflow")
+        my_workflow_text.to_edge(UP)
+
+        target_image_height = 1
+
+        # blender_text = Text("Blender")
+        # blender_logo = SVGMobject("./images/logos/blender_logo.svg")
+        blender_logo = ImageMobject("./images/logos/blender_logo.png").set_height(target_image_height)
+
+        blender_logo.to_corner(UL)
+        desmos_text = Text("Desmos")
+        # desmos_logo = SVGMobject("./images/logos/desmos_logo.svg")
+        desmos_logo = ImageMobject("./images/logos/desmos_logo.png").set_height(target_image_height)
+        desmos_logo.to_corner(UR)
+
+        qgis_text = Text("QGIS")
+        # qgis_logo = SVGMobject("./images/logos/qgis_logo.svg")
+        qgis_logo = ImageMobject("./images/logos/qgis_logo.png").set_height(target_image_height).scale(1.1)
+        qgis_logo.to_edge(DOWN)
+        # Arrow()
+
+        a1 = Arrow(start=blender_logo.get_bottom(), end=qgis_logo.get_top())
+        a2 = Arrow(start=desmos_logo.get_bottom(), end=qgis_logo.get_top())
+        a3 = DoubleArrow(start=blender_logo.get_right(), end=desmos_logo.get_left())
+
+        self.add(my_workflow_text, blender_logo, desmos_logo, qgis_logo)
+        self.add(a1,a2,a3)
+        
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.clear()
+
+
+        failed1 = ImageMobject("./images/failed_attempt/failed_screenshot.png")
+        failed2 = ImageMobject("./images/failed_attempt/to_sphere0011.png")
+
+        failed1.to_edge(LEFT, buff=0.2)
+        failed2.to_edge(RIGHT, buff=0.2)
+
+        self.add(failed1, failed2)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+        # Group(Text("3Blue1Brown"))
+
+        # self.wait()
+        # self.next_slide(skip_animations=False)
+
 
 
 # if __name__ == "__main__":
