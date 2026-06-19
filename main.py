@@ -5,7 +5,6 @@ from pathlib import Path
 from statistics import mean
 from textwrap import wrap
 
-from PySide2.QtGui import QVector2D, QVector3D
 
 from manim import *  # or: from manimlib import *
 from manim_slides import Slide
@@ -23,6 +22,7 @@ switzerland = [(0.13558678567707005, -0.840876415892391, 0.0), (0.34989056837453
 FREYA_BLUE = "#32bcfd"
 FREYA_YELLOW = "#14fda5"
 FREYA_RED = "#fc1153"
+FREYA_GRAY = "#0e1a26"
 
 def lerp(a: float, b: float, t: float) -> float:
     """Linear interpolate on the scale given by a to b, using t as the point on that scale.
@@ -33,26 +33,46 @@ def lerp(a: float, b: float, t: float) -> float:
     """
     return (1 - t) * a + t * b
 
-def to_circle(geometry: Polygon, t: float=1):
+def normalize_v(v):
+    #inspired from https://stackoverflow.com/questions/21030391/how-to-normalize-a-numpy-array-to-a-unit-vector
+    norm = np.linalg.norm(v)
+    if norm == 0: 
+       raise ZeroDivisionError
+    return v / norm
+
+def to_circle_manim(geometry: Polygon, t: float=1) -> Polygon:
     centroid = geometry.get_center()
     
     vertices = [v for v in geometry.get_vertices()]
-    # vertices_as_geom = [QgsGeometry(v) for v in geometry.vertices()]
     
-    np.linalg.norm()
-    # distance_centroid_vertex = [v.distance(centroid) for v in vertices_as_geom]
-    distance_centroid_vertex = [np.linalg.norm(v, centroid) for v in vertices]
+    distance_centroid_vertex = [Line(v, centroid).get_length() for v in vertices]
+
 
     average = goal = mean(distance_centroid_vertex)
     
     
-    vectors = [QVector2D( v.toQPointF() - centroid.asQPointF()) for v in vertices]
+    vectors = [ v - centroid for v in vertices]
+    vectors = [normalize_v(vector) * lerp(original_dist, goal, t) for vector, original_dist in zip(vectors, distance_centroid_vertex)]
     
-    vectors = [vector.normalized() * lerp(original_dist, goal, t) for vector, original_dist in zip(vectors, distance_centroid_vertex)]
-    end_vertices = [QgsPointXY(centroid.asQPointF() + final_vector.toPointF()) for final_vector in vectors]
+    end_vertices = [centroid + final_vector for final_vector in vectors]
+
     
-    polygon = QgsGeometry.fromPolygonXY([end_vertices])
+    polygon = Polygon(*end_vertices) 
     return polygon
+
+def my_code_step(code_string):
+    code_step = Code(
+            code_string=code_string,
+            language="haskell",   # often better than "lisp"
+            background="window",
+            formatter_style='vim',
+            # insert_line_no=False,
+            # style="monokai",
+            
+        )
+    code_step.scale(0.6).scale(0.5)
+    code_step.to_edge(RIGHT)
+    return code_step
 
 @dataclass
 class VideoStatus:
@@ -127,8 +147,19 @@ class VideoMobject(ImageMobject):
             mobj.pixel_array = change_to_rgba_array(
                 np.asarray(img), mobj.pixel_array_dtype
             )
+    def duration(self):
+        try:
+            frame_count = int(self.status.videoObject.get(cv2.CAP_PROP_FRAME_COUNT))
+            fps = self.status.videoObject.get(cv2.CAP_PROP_FPS)
+        except:
+            raise(Exception("video Object not set"))
+
+        duration_seconds = frame_count / fps
+        return duration_seconds
+
 
 SKIP_ANIMATIONS = True
+config.background_color = FREYA_GRAY
 
 """
 ALL SLIDE
@@ -226,16 +257,12 @@ class BasicExample(Slide):
         switzerland_center = Dot((centroid.x, centroid.y, 0))
         self.add(switzerland_center)
 
-        centroid_dot =  Dot(switzerland_p.get_center_of_mass(), color=YELLOW)
+        centroid_dot =  Dot(switzerland_p.get_center(), color=YELLOW)
         self.add(centroid_dot)
 
-        # c = Circle(radius=4)
-        # self.add(c)
 
         self.wait()
-
-        
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
 
         lines_grp = VGroup()
@@ -245,7 +272,7 @@ class BasicExample(Slide):
         lengths = []
         for i in range(len(vertices), 0, -1):
             vertex = vertices[(i+offset)%len(vertices)]
-            l = Line(start=switzerland_p.get_center(), end=vertex)   
+            l = Line(start=switzerland_p.get_center(), end=vertex, stroke_width=1)   
             lengths.append(l.get_length())
             lines_grp.add(l)
         
@@ -318,7 +345,7 @@ class BasicExample(Slide):
             ]
 
         self.wait()
-        self.next_slide(loop=False, skip_animations=False)
+        self.next_slide(loop=False, skip_animations=SKIP_ANIMATIONS)
 
         # self.clear()
 
@@ -348,10 +375,8 @@ class BasicExample(Slide):
                              ))
         
         self.add(avg_circle)
+
         self.wait()
-        
-
-
         self.next_slide(skip_animations=False)
 
         # LERP 
@@ -418,50 +443,56 @@ class BasicExample(Slide):
         )
 
 
-        self.add(t_text)
+        def t_circle_callback():
+            circ =  to_circle_manim(switzerland_p, t=t_tracker.get_value())
+            col = core.interpolate_color(ManimColor(FREYA_RED), ManimColor(FREYA_BLUE), t_tracker.get_value() )
+            dots = [Dot(v, radius=0.05, color=col) for v in circ.get_vertices() ]
+            dot
+            dot_grp = VGroup(*dots[::2])
 
+            circ.add(dot_grp)
+            circ.set_color( color=col )
+            return circ
+
+        t_circle = always_redraw(
+            t_circle_callback
+        )
+
+        # switzerland_to_circle = to_circle_manim(switzerland_p, 1)
+        # self.add(switzerland_to_circle)
+        
+        end_circle = to_circle_manim(switzerland_p, 1)
+        lines_start_to_end_circle =  [
+                Line(start=start_vertice, end=end_vertices, stroke_width=1.2) for start_vertice, end_vertices in zip( end_circle.get_vertices(), switzerland_p.get_vertices() )
+                ]
+        lines_start_to_end_circle = VGroup(
+            *lines_start_to_end_circle[::2]
+            )
+        self.add(lines_start_to_end_circle)
+
+        self.add(t_text)
         self.add(t_dot)
+        self.add(t_circle)
+
         self.play(t_tracker.animate.set_value(1), run_time=3)
+
+        self.next_slide(skip_animations=False)
+
+
+        self.play( t_tracker.animate.set_value(2) )
 
 
 
 
         self.wait()
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
         
         self.play(Transform(title_lerp, Text("Put everything in an expression")))
 
         self.wait()
-
-        self.next_slide(skip_animations=SKIP_ANIMATIONS)
-
-
-
-        expression_string ="""with_variable('scale_coord', 2 * PI() * 9,
-with_variable('normalize_scale',
-    (maximum( x_max( $geometry) ) - minimum( x_min( $geometry) )) / (maximum( y_max( $geometry)) - minimum( y_min( $geometry) )) ,
-with_variable('x_coord', 
-    inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) ) * @scale_coord,
-with_variable('y_coord', 
-    inverse_lerp( minimum( y_min( $geometry) ) , maximum( y_max( $geometry)), y($geometry) ) * @scale_coord / @normalize_scale,
-with_variable('lebanon_x', 
-    inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), -216962.970 ) * @scale_coord,
-with_variable('lebanon_y',
-    inverse_lerp( minimum( y_min( $geometry) ) , maximum( y_max( $geometry)), 1868583.826 ) * @scale_coord / @normalize_scale,
-with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
-with_variable('keyframe_1', 150,
-with_variable('dt_offset', @frame_pct *2 * PI() * 9,
-with_variable('t', 
-	scale_linear(
-		sin( -@dt_offset + sqrt( (@x_coord-@lebanon_x)^2 + (@y_coord-@lebanon_y)^2))
-		, -1,1
-		, 0,1
-	 ),
-	
-	 to_circle( @geometry, @t )
-
-))))))))))"""
+        self.next_slide(skip_animations=False)
+        self.clear()
 
         python_string = """from manim import *
         from manim_slides import Slide
@@ -479,63 +510,71 @@ with_variable('t',
                 self.play(Rotate(square, angle=PI/2))
         """
 
-        code_step_3 = Code(
+        code_python = Code(
             code_string=python_string,
             language="python",
         )
-        self.add(code_step_3)
+        self.add(code_python)
 
         self.wait()
-        self.next_slide(skip_animations=SKIP_ANIMATIONS)
+        self.next_slide(skip_animations=False)
+        self.clear()
+
+        video_timeline = VideoMobject(
+            filename=r"./images/timeline.mp4",
+            loop=True,
+            # imageops=ImageOps.mirror
+        ).scale_to_fit_width(5).to_corner(DL)
+        self.add(video_timeline)
+
+        expression_step1 = """with_variable('t',  (@frame_number+1) / @total_frame_count, 
+	 to_circle( @geometry, @t )
+)"""
 
 
-        expression_string = """with_variable('scale_coord', 2 * PI() * 9,
-with_variable('normalize_scale',
-  (maximum(x_max($geometry)) - minimum(x_min($geometry))) /
-  (maximum(y_max($geometry)) - minimum(y_min($geometry))),
-with_variable('x_coord',
-  inverse_lerp(
-    minimum(x_min($geometry)),
-    maximum(x_max($geometry)),
-    x($geometry)
-  ) * @scale_coord,
-with_variable('y_coord',
-  inverse_lerp(
-    minimum(y_min($geometry)),
-    maximum(y_max($geometry)),
-    y($geometry)
-  ) * @scale_coord / @normalize_scale,
-with_variable('lebanon_x',
-  inverse_lerp(
-    minimum(x_min($geometry)),
-    maximum(x_max($geometry)),
-    -216962.970
-  ) * @scale_coord,
-with_variable('lebanon_y',
-  inverse_lerp(
-    minimum(y_min($geometry)),
-    maximum(y_max($geometry)),
-    1868583.826
-  ) * @scale_coord / @normalize_scale,
-with_variable('frame_pct',
-  (@frame_number + 1) / @total_frame_count,
-with_variable('keyframe_1', 150,
-with_variable('dt_offset',
-  @frame_pct * 2 * PI() * 9,
-with_variable('t',
-  scale_linear(
-    sin(
-      -@dt_offset +
-      sqrt(
-        (@x_coord - @lebanon_x)^2 +
-        (@y_coord - @lebanon_y)^2
-      )
-    ),
-    -1, 1,
-     0, 1
-  ),
-  to_circle(@geometry, @t)
-)))))))))"""
+        code_step_1 = Code(
+            code_string=expression_step1,
+            language="haskell",   # often better than "lisp"
+            background="window",
+            formatter_style='vim',
+            # insert_line_no=False,
+            # style="monokai",
+            
+        )
+        code_step_1.scale(0.6)
+        code_step_1.to_edge(RIGHT)
+
+        self.add(code_step_1)
+
+        self.wait( video_timeline.duration() )
+        self.next_slide(skip_animations=False, loop=True)
+
+        expression_step_2 = """with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
+with_variable('dt_offset', @frame_pct *2 * PI() * 9,
+with_variable('t', 
+	scale_linear(
+		sin( @dt_offset )
+		, -1,1
+		, 0,1.2
+	 ),
+
+	 to_circle( @geometry, @t )
+	 --@frame_pct
+)))        
+"""
+        c2 = my_code_step(expression_step_2)
+        self.play(Transform(code_step_1, c2), Wait(video_timeline.duration())
+                  )
+        self.next_slide(skip_animations=False)
+
+
+        c3 = my_code_step("blabla lorem ipsum step 3")
+        self.play(Transform(code_step_1, c2), Wait(video_timeline.duration())
+                  )
+        self.next_slide(skip_animations=False)
+        
+
+        print("animation around ~")
 
         expression_string = """with_variable('scale_coord', 2 * PI() * 9,
 with_variable('normalize_scale',
@@ -554,7 +593,6 @@ with_variable('lebanon_y',
     inverse_lerp( minimum( y_min( $geometry) ) , maximum( y_max( $geometry)), 1868583.826 ) 
 	* @scale_coord / @normalize_scale,
 with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
-with_variable('keyframe_1', 150,
 with_variable('dt_offset', @frame_pct *2 * PI() * 9,
 with_variable('t', 
 	scale_linear(
@@ -565,9 +603,10 @@ with_variable('t',
 	
 	 to_circle( @geometry, @t )
 
-))))))))))"""
-        self.wait()
-        # self.next_slide(skip_animations=False)
+)))))))))"""
+
+        
+
 
         # expression_string = "\n".join(wrap(expression_string))
         code_step_4 = Code(
@@ -580,12 +619,14 @@ with_variable('t',
             
         )
         # code_step_4.remove(code_step_4.background)
-        code_step_4.scale(0.6)
+        code_step_4.scale(0.6).scale(0.5)
         code_step_4.to_edge(RIGHT)
 
-        self.add(code_step_4)
+        # self.add(code_step_4)
+        self.play(Transform(code_step_1, code_step_4), Wait(video_timeline.duration())
+                  )
+        #maybe use? #TransformMatchingShapes
 
-        self.wait()
 
         self.next_slide(skip_animations=False)
 
@@ -674,8 +715,10 @@ with_variable('t',
 
         # blender_text = Text("Blender")
         # blender_logo = SVGMobject("./images/logos/blender_logo.svg")
+        blender_screenshot = ImageMobject("./images/workflow/blender_screenshot.png")
         blender_logo = ImageMobject("./images/logos/blender_logo.png").set_height(target_image_height)
 
+        self.add(blender_screenshot)
         blender_logo.to_corner(UL)
         desmos_text = Text("Desmos")
         # desmos_logo = SVGMobject("./images/logos/desmos_logo.svg")
@@ -703,12 +746,42 @@ with_variable('t',
 
 
         failed1 = ImageMobject("./images/failed_attempt/failed_screenshot.png")
-        failed2 = ImageMobject("./images/failed_attempt/to_sphere0011.png")
+        failed2 = ImageMobject("./images/failed_attempt/failed2.png")
 
         failed1.to_edge(LEFT, buff=0.2)
         failed2.to_edge(RIGHT, buff=0.2)
 
         self.add(failed1, failed2)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        common_goal_exemple_text = Text("common goal exemple")
+        self.add(common_goal_exemple_text)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.remove(common_goal_exemple_text)
+
+        common_goal_keyframe = Text("common goal keyframe ")
+        self.add(common_goal_keyframe)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.remove(common_goal_keyframe)
+
+        funded_by_text = Text("funded by QGIS ch ")
+        self.add(funded_by_text)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+        
+        self.remove(funded_by_text)
+
+        video_editor_mockup = Text(" mockup video editor / timeline/ keyframe ")
+        self.add(video_editor_mockup)
 
         self.wait()
         self.next_slide(skip_animations=False)
