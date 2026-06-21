@@ -159,6 +159,7 @@ class VideoMobject(ImageMobject):
 
 
 SKIP_ANIMATIONS = True
+SKIP_ANIMATIONS_PART2 = True
 config.background_color = FREYA_GRAY
 
 """
@@ -240,7 +241,7 @@ class BasicExample(Slide):
         self.wait()
 
 
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
         self.clear()
 
@@ -377,7 +378,7 @@ class BasicExample(Slide):
         self.add(avg_circle)
 
         self.wait()
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
         # LERP 
         self.remove(avg_line)
@@ -476,7 +477,7 @@ class BasicExample(Slide):
 
         self.play(t_tracker.animate.set_value(1), run_time=3)
 
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
 
         self.play( t_tracker.animate.set_value(2) )
@@ -488,10 +489,10 @@ class BasicExample(Slide):
         self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
         
-        self.play(Transform(title_lerp, Text("Put everything in an expression")))
+        self.play(Transform(title_lerp, Text("Put everything in an expression and use it in a geometry geneator")))
 
         self.wait()
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
         self.clear()
 
         python_string = """from manim import *
@@ -517,7 +518,7 @@ class BasicExample(Slide):
         self.add(code_python)
 
         self.wait()
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
         self.clear()
 
         video_timeline = VideoMobject(
@@ -547,7 +548,7 @@ class BasicExample(Slide):
         self.add(code_step_1)
 
         self.wait( video_timeline.duration() )
-        self.next_slide(skip_animations=False, loop=True)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2, loop=True)
 
         expression_step_2 = """with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
 with_variable('dt_offset', @frame_pct *2 * PI() * 9,
@@ -565,18 +566,94 @@ with_variable('t',
         c2 = my_code_step(expression_step_2)
         self.play(Transform(code_step_1, c2), Wait(video_timeline.duration())
                   )
-        self.next_slide(skip_animations=False)
+        
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
 
+        # =============
+        # Step 2.1
+        # =============
 
-        c3 = my_code_step("blabla lorem ipsum step 3")
-        self.play(Transform(code_step_1, c2), Wait(video_timeline.duration())
+        expression_step_3 = """with_variable('scale_coord', 2 * PI() * 9,
+with_variable('x_coord', inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) )* @scale_coord,
+with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
+with_variable('dt_offset', @frame_pct *2 * PI() * 9,
+with_variable('t', 
+	scale_linear(
+		sin( @dt_offset + @x_coord  )
+		, -1,1
+		, 0,1.2
+	 ),
+
+	 to_circle( @geometry, @t )
+)))))"""
+        c3 = my_code_step(expression_step_3)
+        self.play(Transform(code_step_1, c3), Wait(video_timeline.duration())
                   )
-        self.next_slide(skip_animations=False)
+        
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
+
+        expression_step_4 = """with_variable('scale_coord', 2 * PI() * 9,
+with_variable('x_coord', inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) )* @scale_coord,
+with_variable('y_coord', 
+    inverse_lerp( minimum( y_min( $geometry) ) , maximum( y_max( $geometry)), y($geometry) ) 
+	* @scale_coord,
+
+with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
+with_variable('dt_offset', @frame_pct *2 * PI() * 9,
+with_variable('t', 
+	scale_linear(
+		sin( -@dt_offset + sqrt( (@x_coord)^2 + (@y_coord)^2))
+		, -1,1
+		, 0,1.2
+	 ),
+
+	 to_circle( @geometry, @t )
+))))))"""
+
+        c4 = my_code_step(expression_step_4)
+        self.play(Transform(code_step_1, c4), Wait(video_timeline.duration())
+                  )
+        
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
+
+        expression_step_5 = """with_variable('scale_coord', 2 * PI() * 9,
+with_variable('x_coord', 
+    inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) ) 
+	* @scale_coord,
+with_variable('y_coord', 
+    inverse_lerp( minimum( y_min( $geometry) ) , maximum( y_max( $geometry)), y($geometry) ) 
+	* @scale_coord,
+with_variable('lebanon_x', 
+    inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), -216962.970 ) 
+	* @scale_coord,
+with_variable('lebanon_y',
+    inverse_lerp( minimum( y_min( $geometry) ) , maximum( y_max( $geometry)), 1868583.826 ) 
+	* @scale_coord,
+with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
+with_variable('dt_offset', @frame_pct *2 * PI() * 9,
+with_variable('t', 
+	scale_linear(
+		sin( -@dt_offset + sqrt( (@x_coord-@lebanon_x)^2 + (@y_coord-@lebanon_y)^2))
+		, -1,1
+		, 0,1
+	 ),
+	
+	 to_circle( @geometry, @t )
+))))))))
+
+
+"""
+
+        c5 = my_code_step(expression_step_5)
+        self.play(Transform(code_step_1, c5), Wait(video_timeline.duration())
+                  )
+        
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
         
 
         print("animation around ~")
 
-        expression_string = """with_variable('scale_coord', 2 * PI() * 9,
+        expression_step_6 = """with_variable('scale_coord', 2 * PI() * 9,
 with_variable('normalize_scale',
     (maximum( x_max( $geometry) ) - minimum( x_min( $geometry) )) 
 	/ (maximum( y_max( $geometry)) - minimum( y_min( $geometry) )) ,
@@ -608,9 +685,9 @@ with_variable('t',
         
 
 
-        # expression_string = "\n".join(wrap(expression_string))
-        code_step_4 = Code(
-            code_string=expression_string,
+        # expression_step_6 = "\n".join(wrap(expression_step_6))
+        code_step_6 = Code(
+            code_string=expression_step_6,
             language="haskell",   # often better than "lisp"
             background="window",
             formatter_style='vim',
@@ -618,16 +695,126 @@ with_variable('t',
             # style="monokai",
             
         )
-        # code_step_4.remove(code_step_4.background)
-        code_step_4.scale(0.6).scale(0.5)
-        code_step_4.to_edge(RIGHT)
+        # code_step_6.remove(code_step_6.background)
+        code_step_6.scale(0.6).scale(0.5)
+        code_step_6.to_edge(RIGHT)
 
-        # self.add(code_step_4)
-        self.play(Transform(code_step_1, code_step_4), Wait(video_timeline.duration())
+        # self.add(code_step_6)
+        self.play(Transform(code_step_1, code_step_6), Wait(video_timeline.duration())
                   )
         #maybe use? #TransformMatchingShapes
 
 
+        self.next_slide(skip_animations=False)
+
+
+
+        self.clear()
+
+        my_workflow_text = Text("My workflow")
+        my_workflow_text.to_edge(UP)
+
+
+        target_image_height = 1
+
+        # blender_text = Text("Blender")
+        # blender_logo = SVGMobject("./images/logos/blender_logo.svg")
+
+        
+        blender_logo = ImageMobject("./images/logos/blender_logo.png").set_height(target_image_height)
+        blender_screenshot = ImageMobject("./images/workflow/blender_screenshot.png")
+        blender_screenshot.scale_to_fit_width(blender_logo.width)
+        blender_screenshot.next_to(blender_logo, direction=UP)
+        blender_grp = Group(blender_screenshot, blender_logo)
+        
+
+
+
+        self.add(blender_screenshot)
+        blender_logo.to_corner(UL)
+        desmos_text = Text("Desmos")
+        # desmos_logo = SVGMobject("./images/logos/desmos_logo.svg")
+        desmos_logo = ImageMobject("./images/logos/desmos_logo.png").set_height(target_image_height)
+        desmos_logo.to_corner(UR)
+
+        qgis_text = Text("QGIS")
+        # qgis_logo = SVGMobject("./images/logos/qgis_logo.svg")
+        qgis_logo = ImageMobject("./images/logos/qgis_logo.png").set_height(target_image_height).scale(1.1)
+        qgis_logo.to_edge(DOWN)
+        # Arrow()
+
+        a1 = Arrow(start=blender_logo.get_bottom(), end=qgis_logo.get_top())
+        a2 = Arrow(start=desmos_logo.get_bottom(), end=qgis_logo.get_top())
+        a3 = DoubleArrow(start=blender_logo.get_right(), end=desmos_logo.get_left())
+
+        self.add(my_workflow_text, blender_logo, desmos_logo, qgis_logo)
+        self.add(a1,a2,a3)
+        
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.clear()
+
+
+        failed1 = ImageMobject("./images/failed_attempt/failed_screenshot.png")
+        failed2 = ImageMobject("./images/failed_attempt/failed2.png")
+
+        failed1.scale_to_fit_width(config.frame_width / 2 * 0.95)
+        failed2.scale_to_fit_width(config.frame_width / 2 * 0.95)
+
+        failed1.to_edge(LEFT, buff=0.2)
+        failed2.to_edge(RIGHT, buff=0.2)
+
+        self.add(failed1, failed2)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.clear()
+
+        common_goal_exemple_text = Text("common goal exemple")
+        common_goal_exemple_text.to_edge(UP)
+
+
+        
+
+
+        # animate apparition -> memoire / opacity
+        # animate a line -> rail to laax
+        # animate a point line -> memoire ou skip ?
+        # animate a buffer expanding 
+
+
+        self.add(common_goal_exemple_text)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.remove(common_goal_exemple_text)
+
+        common_goal_keyframe = Text("common goal keyframe ")
+        self.add(common_goal_keyframe)
+
+        # animate a buffer expanding 
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.remove(common_goal_keyframe)
+
+        funded_by_text = Text("funded by QGIS ch ")
+        self.add(funded_by_text)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+        
+        self.remove(funded_by_text)
+
+        video_editor_mockup = Text(" mockup video editor / timeline/ keyframe ")
+        self.add(video_editor_mockup)
+
+        self.wait()
         self.next_slide(skip_animations=False)
 
         self.clear()
@@ -702,86 +889,6 @@ with_variable('t',
         # Valentin Buira Linkedin
         # valentin.buira@gmail.com -> legacy
         # cbuira.xyz mastodon/tiktok/instagram
-
-        self.wait()
-        self.next_slide(skip_animations=False)
-
-        self.clear()
-
-        my_workflow_text = Text("My workflow")
-        my_workflow_text.to_edge(UP)
-
-        target_image_height = 1
-
-        # blender_text = Text("Blender")
-        # blender_logo = SVGMobject("./images/logos/blender_logo.svg")
-        blender_screenshot = ImageMobject("./images/workflow/blender_screenshot.png")
-        blender_logo = ImageMobject("./images/logos/blender_logo.png").set_height(target_image_height)
-
-        self.add(blender_screenshot)
-        blender_logo.to_corner(UL)
-        desmos_text = Text("Desmos")
-        # desmos_logo = SVGMobject("./images/logos/desmos_logo.svg")
-        desmos_logo = ImageMobject("./images/logos/desmos_logo.png").set_height(target_image_height)
-        desmos_logo.to_corner(UR)
-
-        qgis_text = Text("QGIS")
-        # qgis_logo = SVGMobject("./images/logos/qgis_logo.svg")
-        qgis_logo = ImageMobject("./images/logos/qgis_logo.png").set_height(target_image_height).scale(1.1)
-        qgis_logo.to_edge(DOWN)
-        # Arrow()
-
-        a1 = Arrow(start=blender_logo.get_bottom(), end=qgis_logo.get_top())
-        a2 = Arrow(start=desmos_logo.get_bottom(), end=qgis_logo.get_top())
-        a3 = DoubleArrow(start=blender_logo.get_right(), end=desmos_logo.get_left())
-
-        self.add(my_workflow_text, blender_logo, desmos_logo, qgis_logo)
-        self.add(a1,a2,a3)
-        
-
-        self.wait()
-        self.next_slide(skip_animations=False)
-
-        self.clear()
-
-
-        failed1 = ImageMobject("./images/failed_attempt/failed_screenshot.png")
-        failed2 = ImageMobject("./images/failed_attempt/failed2.png")
-
-        failed1.to_edge(LEFT, buff=0.2)
-        failed2.to_edge(RIGHT, buff=0.2)
-
-        self.add(failed1, failed2)
-
-        self.wait()
-        self.next_slide(skip_animations=False)
-
-        common_goal_exemple_text = Text("common goal exemple")
-        self.add(common_goal_exemple_text)
-
-        self.wait()
-        self.next_slide(skip_animations=False)
-
-        self.remove(common_goal_exemple_text)
-
-        common_goal_keyframe = Text("common goal keyframe ")
-        self.add(common_goal_keyframe)
-
-        self.wait()
-        self.next_slide(skip_animations=False)
-
-        self.remove(common_goal_keyframe)
-
-        funded_by_text = Text("funded by QGIS ch ")
-        self.add(funded_by_text)
-
-        self.wait()
-        self.next_slide(skip_animations=False)
-        
-        self.remove(funded_by_text)
-
-        video_editor_mockup = Text(" mockup video editor / timeline/ keyframe ")
-        self.add(video_editor_mockup)
 
         self.wait()
         self.next_slide(skip_animations=False)
