@@ -61,6 +61,8 @@ def to_circle_manim(geometry: Polygon, t: float=1) -> Polygon:
     return polygon
 
 def my_code_step(code_string):
+    target_width = 7
+
     code_step = Code(
             code_string=code_string,
             language="haskell",   # often better than "lisp"
@@ -70,7 +72,8 @@ def my_code_step(code_string):
             # style="monokai",
             
         )
-    code_step.scale(0.6).scale(0.5)
+    # code_step.scale(0.6).scale(0.5)
+    code_step.scale_to_fit_width(target_width)
     code_step.to_edge(RIGHT)
     return code_step
 
@@ -147,6 +150,8 @@ class VideoMobject(ImageMobject):
             mobj.pixel_array = change_to_rgba_array(
                 np.asarray(img), mobj.pixel_array_dtype
             )
+
+
     def duration(self):
         try:
             frame_count = int(self.status.videoObject.get(cv2.CAP_PROP_FRAME_COUNT))
@@ -158,11 +163,14 @@ class VideoMobject(ImageMobject):
         return duration_seconds
 
 
-SKIP_ANIMATIONS = True
-SKIP_ANIMATIONS_INTRO = True
-SKIP_ANIMATIONS_PART1 = True
-SKIP_ANIMATIONS_PART2 = True
-SKIP_ANIMATIONS_PART3 = True
+SKIP_ANIMATIONS = False
+SKIP_ANIMATIONS_INTRO = False
+SKIP_ANIMATIONS_PART1 = False
+SKIP_ANIMATIONS_PART2 = False
+SKIP_ANIMATIONS_PART2_TIMELINE = False
+# SKIP_ANIMATIONS_PART2_CODE_TRANSFORMATION = True
+SKIP_ANIMATIONS_PART3 = False
+
 config.background_color = FREYA_GRAY
 
 """
@@ -187,17 +195,17 @@ ALL SLIDE
     - eventuellement list tool les problemes 
     - eventuellement lister toutes les choses faites
 *what's next ? call for help
-* le rab (freya etc..)
+* le rab (freya etc..) à l'oral à faire pour le 
 """
 
 class BasicExample(Slide):
     def construct(self):
-        # circle = Circle(radius=3, color=BLUE)
-        # dot = Dot()
+        circle = Circle(radius=3, color=BLUE)
+        dot = Dot()
+        # self.play(GrowFromCenter(circle), run_time=0.1)
+        self.wait()
 
-        # self.play(GrowFromCenter(circle))
-
-
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_INTRO) 
     
         intro_video = VideoMobject("./images/to_circle_intro_video.mp4")
         intro_video.scale(0.6).to_edge(LEFT)
@@ -210,6 +218,7 @@ class BasicExample(Slide):
         self.add(intro_text)
 
         self.wait(5)
+
         self.next_slide(skip_animations=SKIP_ANIMATIONS_INTRO)  
 
         self.clear()
@@ -551,8 +560,6 @@ class BasicExample(Slide):
         self.play( t_tracker.animate.set_value(2) )
 
 
-
-
         self.wait()
         self.next_slide(skip_animations=SKIP_ANIMATIONS_PART1)
 
@@ -603,39 +610,61 @@ class BasicExample(Slide):
         # self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
         self.clear()
 
-        video_timeline = VideoMobject(
-            filename=r"./images/timeline.mp4",
-            loop=True,
-            # imageops=ImageOps.mirror
-        ).scale_to_fit_width(5).to_corner(DL)
-        self.add(video_timeline)
 
-        expression_step1 = """with_variable('t',  (@frame_number+1) / @total_frame_count, 
-	 to_circle( @geometry, @t )
+        if not SKIP_ANIMATIONS_PART2_TIMELINE:
+            video_timeline = VideoMobject(
+                filename=r"./images/timeline.mp4",
+                loop=False,
+                # loop=True,
+                # imageops=ImageOps.mirror
+            ).scale_to_fit_width(5).to_corner(DL).shift(UP)
+            self.add(video_timeline)
+        else:
+            from types import SimpleNamespace
+            video_timeline = SimpleNamespace(a=1, duration=lambda: 1)
+        
+
+        vid1 = VideoMobject("images/steps/out_step1.mp4")
+        vid1.scale(0.5).to_edge(LEFT)
+        self.add(vid1)
+
+        expression_step1 = """with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
+	 to_circle( @geometry, @frame_pct )
 )"""
 
 
-        code_step_1 = Code(
-            code_string=expression_step1,
-            language="haskell",   # often better than "lisp"
-            background="window",
-            formatter_style='vim',
-            # insert_line_no=False,
-            # style="monokai",
+        # code_step_1 = Code(
+        #     code_string=expression_step1,
+        #     language="haskell",   # often better than "lisp"
+        #     background="window",
+        #     formatter_style='vim',
+        #     # insert_line_no=False,
+        #     # style="monokai",
             
-        )
-        code_step_1.scale(0.6)
-        code_step_1.to_edge(RIGHT)
+        # )
+        # code_step_1.scale(0.6)
+        # code_step_1.to_edge(RIGHT)
 
+        c1 = code_step_1 = my_code_step(expression_step1)
         self.add(code_step_1)
 
         explain_step_text = Text("'with_variable', assign a variable to resuse it later in an expression")
         explain_step_text.scale(0.6)
+
         explain_step_text.to_corner(DL)
         self.add(explain_step_text)
 
-        self.wait( video_timeline.duration() )
-        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2, loop=True)
+        self.play( Wait(video_timeline.duration()),
+                   Wait(vid1.duration()) )
+        
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2, loop=False)
+
+        self.remove(video_timeline)
+
+        self.remove(vid1)
+        vid2 = VideoMobject("images/steps/out_step2.mp4")
+        vid2.scale(0.5).to_edge(LEFT)
+        self.add(vid2)
 
         expression_step_2 = """with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
 with_variable('dt_offset', @frame_pct *2 * PI() * 9,
@@ -647,17 +676,20 @@ with_variable('t',
 	 ),
 
 	 to_circle( @geometry, @t )
-	 --@frame_pct
 )))        
 """
         c2 = my_code_step(expression_step_2)
 
 
-        explain_step_2_text = Text("Follow a sin function")
+        explain_step_2_text = Text("Follow a sin function with time")
+        explain_step_2_text.match_x(explain_step_text)
+        explain_step_2_text.match_y(explain_step_text)
+        explain_step_2_text.match_dim_size(explain_step_text, 2)
 
-
-        self.play(Transform(code_step_1, c2), 
+        
+        self.play(Transform(code_step_1, c2),  
                   Wait(video_timeline.duration()),
+                  Wait(vid2.duration()),
                   Transform(explain_step_text, explain_step_2_text)
                   )
         
@@ -667,8 +699,36 @@ with_variable('t',
         # Step 2.1
         # =============
 
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
+
+        self.remove(vid2)
+        vid2_1 = VideoMobject("images/steps/out_step2.1.mp4")
+        vid2_1.scale(0.5).to_edge(LEFT)
+        self.add(vid2_1)
+
+        explain_step_2_1_text = Text("Apply the same to thickness")
+        explain_step_2_1_text.match_x(explain_step_text)
+        explain_step_2_1_text.match_y(explain_step_text)
+        explain_step_2_1_text.match_dim_size(explain_step_text, 2)
+
+        self.play(Transform(code_step_1, c2),  
+                  Wait(video_timeline.duration()),
+                  Wait(vid2_1.duration()),
+                  Transform(explain_step_text, explain_step_2_1_text)
+                  )
+
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
+
+
+        self.remove(vid2_1)
+        vid3 = VideoMobject("images/steps/out_step3.mp4")
+        vid3.scale(0.5).to_edge(LEFT)
+        self.add(vid3)
+
         expression_step_3 = """with_variable('scale_coord', 2 * PI() * 9,
-with_variable('x_coord', inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) )* @scale_coord,
+with_variable('x_coord', 
+    inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) )
+    * @scale_coord,
 with_variable('frame_pct',  (@frame_number+1) / @total_frame_count, 
 with_variable('dt_offset', @frame_pct *2 * PI() * 9,
 with_variable('t', 
@@ -681,14 +741,29 @@ with_variable('t',
 	 to_circle( @geometry, @t )
 )))))"""
         c3 = my_code_step(expression_step_3)
+
+        explain_step_3_text = Text("Use sin offset by time AND x coordinate\n*inverse_lerp is a custom python function")
+        explain_step_3_text.match_x(explain_step_text)
+        explain_step_3_text.match_y(explain_step_text)
+        explain_step_3_text.match_dim_size(explain_step_text, 2)
+
         self.play(Transform(code_step_1, c3),
-                  Wait(video_timeline.duration())
+                  Wait(video_timeline.duration()),
+                  Wait(vid3.duration()),
+                  Transform(explain_step_text, explain_step_3_text)
                   )
         
         self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
 
+        self.remove(vid3)
+        vid4 = VideoMobject("images/steps/out_step4.mp4")
+        vid4.scale(0.5).to_edge(LEFT)
+        self.add(vid4)
+
         expression_step_4 = """with_variable('scale_coord', 2 * PI() * 9,
-with_variable('x_coord', inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) )* @scale_coord,
+with_variable('x_coord', 
+    inverse_lerp( minimum( x_min( $geometry) ) , maximum( x_max( $geometry) ), x($geometry) )
+    * @scale_coord,
 with_variable('y_coord', 
     inverse_lerp( minimum( y_min( $geometry) ) , maximum( y_max( $geometry)), y($geometry) ) 
 	* @scale_coord,
@@ -705,12 +780,26 @@ with_variable('t',
 	 to_circle( @geometry, @t )
 ))))))"""
 
+
+
+        explain_step_4_text = Text("Use sine wave surface as z = sin(sqrt(x2+y2))")
+        explain_step_4_text.match_x(explain_step_text)
+        explain_step_4_text.match_y(explain_step_text)
+        explain_step_4_text.match_dim_size(explain_step_text, 2)
+
         c4 = my_code_step(expression_step_4)
         self.play(Transform(code_step_1, c4),
-                  Wait(video_timeline.duration())
+                  Wait(video_timeline.duration()),
+                  Wait(vid4.duration()),
+                  Transform(explain_step_text, explain_step_4_text)
                   )
         
         self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
+
+        self.remove(vid4)
+        vid5 = VideoMobject("images/steps/out_step5.mp4")
+        vid5.scale(0.5).to_edge(LEFT)
+        self.add(vid5)
 
         expression_step_5 = """with_variable('scale_coord', 2 * PI() * 9,
 with_variable('x_coord', 
@@ -740,15 +829,30 @@ with_variable('t',
 
 """
 
+        explain_step_5_text = Text("Center on the geographical center of the USA")
+        explain_step_5_text.match_x(explain_step_text)
+        explain_step_5_text.match_y(explain_step_text)
+        explain_step_5_text.match_dim_size(explain_step_text, 2)
+
+        explain_step_text.become(explain_step_5_text)
         c5 = my_code_step(expression_step_5)
         self.play(Transform(code_step_1, c5),
-                  Wait(video_timeline.duration())
+                  Wait(video_timeline.duration()),
+                  Wait(vid5.duration()),
+                  
+                #   Transform(explain_step_text, explain_step_5_text)
                   )
         
-        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
+
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2, loop=True)
         
 
         print("animation around ~")
+
+        self.remove(vid5)
+        vid6 = VideoMobject("images/steps/out_step6.mp4")
+        vid6.scale(0.5).to_edge(LEFT)
+        self.add(vid6)
 
         expression_step_6 = """with_variable('scale_coord', 2 * PI() * 9,
 with_variable('normalize_scale',
@@ -782,23 +886,19 @@ with_variable('t',
         
 
 
-        # expression_step_6 = "\n".join(wrap(expression_step_6))
-        code_step_6 = Code(
-            code_string=expression_step_6,
-            language="haskell",   # often better than "lisp"
-            background="window",
-            formatter_style='vim',
-            # insert_line_no=False,
-            # style="monokai",
-            
-        )
-        # code_step_6.remove(code_step_6.background)
-        code_step_6.scale(0.6).scale(0.5)
-        code_step_6.to_edge(RIGHT)
+        explain_step_6_text = Text("Normalize between x and y coordinate scales, and voilà!")
+        explain_step_6_text.match_x(explain_step_text)
+        explain_step_6_text.match_y(explain_step_text)
+        explain_step_6_text.match_dim_size(explain_step_text, 2)
+
+        c6 = code_step_6 = my_code_step(expression_step_6)
 
         # self.add(code_step_6)
         self.play(Transform(code_step_1, code_step_6), 
-                  Wait(video_timeline.duration())
+                  Wait(video_timeline.duration()),
+                  Wait(vid6.duration()),
+                  Transform(explain_step_text, explain_step_6_text)
+
                   )
         #maybe use? #TransformMatchingShapes
 
@@ -967,7 +1067,7 @@ with_variable('t',
 
 
 
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
 
         self.clear()
 
@@ -976,7 +1076,7 @@ with_variable('t',
         self.add(common_goal_keyframe)
         common_goal_keyframe.to_edge(UP)
 
-        keyframe_animation = VideoMobject("./images/exemples/buffer_keyframe.mp4").scale(0.6)
+        keyframe_animation = VideoMobject("./images/exemples/buffer_keyframe.mp4", loop=True).scale(0.6)
         keyframe_animation.to_edge(LEFT)
         self.add(keyframe_animation)
 
@@ -1010,17 +1110,27 @@ buffer(@geometry, @keyframed_value)
 ))))
 """
         keyframe_code = my_code_step(keyframe_expression)
+        keyframe_code.scale(1.2)
 
-        instructions ="""
-1. Define the keyframes 
-2. Inverse lerp, to figure at which completion we are in between keyframe
-3. Interpolate back between the value wanted at each keyframe by the 
-""" 
-        t = Text(instructions)
-        self.add(t)
+#         instructions_string ="""
+# 1. Define the keyframes 
+# 2. Inverse lerp, to figure at which completion we are in between keyframe
+# 3. Interpolate back between the value wanted at each keyframe by the 
+# """ 
+#         instructions_text = Text(instructions_string)
+#         self.add(instructions_text)
+
 
         self.add(keyframe_code)
+
+        self.remove(keyframe_animation)
+        del keyframe_animation
+        if not SKIP_ANIMATIONS_PART3:
+            keyframe_animation = VideoMobject("./images/exemples/buffer_keyframe.mp4", loop=True).scale(0.6)
+            keyframe_animation.to_edge(LEFT)
+            self.add(keyframe_animation)
         
+
         #Define the keyframes
         #  
         # 
@@ -1028,7 +1138,48 @@ buffer(@geometry, @keyframed_value)
 
         # self.add(keyframe_code.code_lines[2])
 
-        self.wait()
+        def rectangle_from_corners(top_left, bottom_right, **kwargs):
+            width = bottom_right[0] - top_left[0]
+            height = top_left[1] - bottom_right[1]
+            center = (top_left + bottom_right) / 2
+            return Rectangle(width=width, height=height, **kwargs).move_to(center)
+        keyframe_code.code_lines[2].get_left()
+        
+        # Rectangle()
+
+        epsilon = 0.2
+        half_line_height = keyframe_code.code_lines[3].height / 2
+        corner_UL = keyframe_code.code_lines[0].get_left() + UP * half_line_height + LEFT * epsilon
+        # corner_DL = keyframe_code.code_lines[3].get_left()+ RIGHT*4
+        corner_DL = keyframe_code.code_lines[3].get_right() + DOWN*  half_line_height + RIGHT*2
+        rect1 = rectangle_from_corners(corner_UL, corner_DL )
+        self.add(rect1)
+
+
+        if not SKIP_ANIMATIONS_PART3:
+            self.wait(keyframe_animation.duration())
+        else:
+            self.wait()
+
+        self.next_slide(skip_animations=False)
+
+        corner_UL = keyframe_code.code_lines[8].get_left() + UP * half_line_height + LEFT * epsilon + RIGHT* 2
+        # corner_DL = keyframe_code.code_lines[3].get_left()+ RIGHT*4
+        corner_DL = keyframe_code.code_lines[10].get_right() + DOWN * half_line_height  + LEFT
+        rect2 = rectangle_from_corners(corner_UL, corner_DL )
+
+        self.play(Transform(rect1, rect2 ))
+
+        self.next_slide(skip_animations=False)
+
+        corner_UL = keyframe_code.code_lines[8].get_left() + UP * half_line_height  + LEFT * epsilon
+        # corner_DL = keyframe_code.code_lines[3].get_left()+ RIGHT*4
+        corner_DL = keyframe_code.code_lines[10].get_right() + DOWN * half_line_height + LEFT * 3
+        rect3 = rectangle_from_corners(corner_UL, corner_DL )
+
+        self.play(Transform(rect1, rect3 ))
+
+
         self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
         # self.remove(common_goal_keyframe)
         self.clear()
@@ -1057,8 +1208,7 @@ buffer(@geometry, @keyframed_value)
         self.add(funded_by_thanks_text)
 
         self.wait()
-        self.next_slide(skip_animations=False)
-
+        self.next_slide(skip_animations=True)
         self.clear()
 
         video_editor_mockup = Text("mockup video editor / timeline/ keyframe ")
@@ -1119,9 +1269,10 @@ buffer(@geometry, @keyframed_value)
         
         contacts = VGroup()
         contacts.add(Text("valentin@opengis.ch"))
+        contacts.add(Text("Valentin Buira on Linkedin\n"))
+
         contacts.add(Text("valentin.buira@gmail.com"))
-        contacts.add(Text("Valentin Buira on Linkedin"))
-        contacts.add(Text("@cbuira.xyz on tiktok/instagram"))
+        contacts.add(Text("@cbuira.xyz on tiktok and soon insta"))
 
         contacts.arrange(direction=DOWN, aligned_edge=LEFT)
         contacts.next_to(contacts_me, DOWN)
