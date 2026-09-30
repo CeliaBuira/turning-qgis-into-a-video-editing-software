@@ -1215,6 +1215,124 @@ buffer(@geometry, @keyframed_value)
         self.add(video_editor_mockup)
 
         self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.clear()
+
+
+        ax = Axes(
+            x_range=[-10, 10, 1],
+            y_range=[-10, 10, 1],
+            tips=False,
+            ) 
+        plane = NumberPlane(
+                background_line_style={
+                "stroke_color": TEAL,
+                "stroke_width": 1,
+                "stroke_opacity": 0.6
+            }
+        )
+
+        label_x_positive = Text("Absolute creative freedom\n Go wild!").next_to(ax.c2p(10, 0), DOWN)
+        label_x_negative = Text("You can do one and only one type\n of map animation").next_to(ax.c2p(-10, 0), DOWN)
+        label_y_positive = Text("User friendly\nGraphical user interface").next_to(ax.c2p(0, 10), UP)
+        label_y_negative = Text("You have to code by hand\nProgramming interface").next_to(ax.c2p(0, -10), DOWN)
+
+        label_x_positive.scale(0.3).shift(UP*0.2).shift(LEFT*0.2)
+        label_x_negative.scale(0.3).shift(UP*0.2).shift(RIGHT*0.5)
+        label_y_positive.scale(0.3).shift(DOWN*0.2)
+        label_y_negative.scale(0.3).shift(UP*0.2)
+
+        self.add(ax)
+        self.add(plane)
+        self.add(label_x_positive)
+        self.add(label_y_positive)
+        self.add(label_x_negative)
+        self.add(label_y_negative)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+
+        target_logo_height = 0.7
+
+
+        ae_logo = ImageMobject("./images/benchmark/Adobe_After_Effects_CC_icon.png").scale_to_fit_height(target_logo_height)
+        d3_logo = ImageMobject("./images/benchmark/Logo_D3.png").scale_to_fit_height(target_logo_height)
+        geolayers_logo = ImageMobject("./images/benchmark/geolayers.png").scale_to_fit_height(target_logo_height)
+        googleearth_logo = ImageMobject("./images/benchmark/googleearth.png").scale_to_fit_height(target_logo_height)
+        kepler_logo = ImageMobject("./images/benchmark/kepler.gl-logo.png").scale_to_fit_height(target_logo_height)
+        maplibre_logo = ImageMobject("./images/benchmark/maplibre.png").scale_to_fit_height(target_logo_height)
+        qgis_logo = ImageMobject("./images/benchmark/qgis_logo.png").scale_to_fit_height(target_logo_height)
+        storymaps_logo = ImageMobject("./images/benchmark/storymaps.png").scale_to_fit_height(target_logo_height)
+
+        # tweak logo sizes that don't feel right
+        qgis_logo.scale(2)
+        kepler_logo.scale(0.72)
+
+
+
+
+        ae_logo.move_to(ax.c2p(8, 9))
+        geolayers_logo.move_to(ax.c2p(8, 0))
+        geolayers_logo.next_to(ae_logo, RIGHT)
+
+        d3_logo.move_to(ax.c2p(9, -7))
+
+        googleearth_logo.move_to(ax.c2p(-8, 9))
+        # storymaps_logo.move_to(ax.c2p(-5, 9))
+        storymaps_logo.next_to(googleearth_logo, RIGHT)
+
+        
+        kepler_logo.move_to(ax.c2p(-8, 2))
+        qgis_logo.move_to(ax.c2p(2, -2))
+        maplibre_logo.move_to(ax.c2p(1, -7))
+
+        # maplibre_logo.next_to(qgis_logo, DOWN)
+
+
+        arrow_qgis2ae= Arrow(qgis_logo.get_corner(UR)- np.array([0.5, 0.5, 0]), ae_logo.get_corner(DL))
+
+
+
+        self.add(
+            ae_logo,
+            geolayers_logo,
+        )
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.add(
+            d3_logo,
+            maplibre_logo,
+        )
+        
+        self.wait()
+        self.next_slide(skip_animations=False)
+        
+        self.add(
+            googleearth_logo,
+            kepler_logo,
+            storymaps_logo,
+        )
+
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.add(
+            qgis_logo,
+        )
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.add(
+            arrow_qgis2ae
+        )
+
+
+        self.wait()
         self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
         self.clear()
