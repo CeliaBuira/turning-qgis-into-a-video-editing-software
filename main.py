@@ -1179,6 +1179,93 @@ buffer(@geometry, @keyframed_value)
 
         self.play(Transform(rect1, rect3 ))
 
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.clear()
+
+        yaap_img = ImageMobject("./images/yaap/yaap.png").scale_to_fit_height(3).to_edge(UP)
+        self.add(yaap_img)
+
+
+
+        txt_interpolation_functions = Text("""
+lerp
+lerp(unclamped)
+inverse_lerp
+inverse_lerp(unclamped)
+
+remap
+remap(unclamped)""")
+        """
+        ).to_edge(UP)
+
+#         txt_remap = Text("""
+# remap
+# remap(unclamped)""")
+#         txt_remap.to_edge(UP)
+
+
+        txt_ease_utils = Text("""
+ease_in_*
+ease_in_quad( 0.25 )
+ease_in_sine( 0.25 )
+...
+
+ease_in_out_*
+ease_in_out_quad( 0.25 )
+ease_in_out_sine( 0.25 )
+...
+
+ease_out_* e.g:
+ease_out_quad( 0.25 )
+ease_out_sine( 0.25 )
+...
+
+ease_out_in_*
+ease_out_in_quad( 0.25 )
+ease_out_in_sine( 0.25 )
+...""")
+        txt_ease_utils.to_edge(UP)
+
+        txt_something_else = Text("""And soon:
+frac
+sign
+ping_pong
+step_snap
+And more functions inspired\n by shaders and Blender""")
+        txt_something_else.to_edge(UP)
+
+        text_scale_factor = 0.4
+        txt_interpolation_functions.scale(text_scale_factor)
+        # txt_remap.scale(text_scale_factor)
+        txt_ease_utils.scale(text_scale_factor * 0.8)
+        txt_something_else.scale(text_scale_factor)
+
+        cols = VGroup(
+            txt_interpolation_functions,
+            # txt_remap,
+            txt_ease_utils,
+            txt_something_else
+        ).arrange(direction=RIGHT, buff=2.5, aligned_edge=LEFT)
+        cols.next_to(yaap_img, DOWN)
+
+
+        self.add(cols)
+
+
+
+        # contacts.arrange(direction=DOWN, aligned_edge=LEFT)
+
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.clear()
+
+        mockup_text = Text("Mockup").to_edge(UP)
+        self.add(mockup_text)
+
 
         self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
         # self.remove(common_goal_keyframe)
