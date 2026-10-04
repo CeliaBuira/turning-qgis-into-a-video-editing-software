@@ -1096,6 +1096,26 @@ with_variable('t',
         self.add(failed1, failed2)
 
         self.wait()
+        self.next_slide(skip_animations=False)
+        self.clear()
+
+        self.add(Text("Recommendations").to_edge(UP))
+
+        target_img_w_reco = 4
+        reco_freya = ImageMobject("./images/recommendations/freya_holmer.jpg").scale_to_fit_width(target_img_w_reco)
+        reco_coding_train = ImageMobject("./images/recommendations/the_coding_train.jpg").scale_to_fit_width(target_img_w_reco).scale(0.75)
+        reco_3b1b = ImageMobject("./images/recommendations/3b1b.jpg").scale_to_fit_width(target_img_w_reco)
+
+        reco_group = Group(reco_freya, reco_coding_train, reco_3b1b)
+        reco_group.arrange()
+        self.add(reco_group)
+
+        self.add(Text("Freya Holmér          The Coding Train           3Blue1Brown").scale(0.7).to_edge( DOWN))
+
+
+
+
+        self.wait()
         self.next_slide(skip_animations=SKIP_ANIMATIONS)
 
         self.clear()
