@@ -181,13 +181,13 @@ class VideoMobject(ImageMobject):
         return duration_seconds
 
 
-SKIP_ANIMATIONS = True
-SKIP_ANIMATIONS_INTRO = True
-SKIP_ANIMATIONS_PART1 = True
-SKIP_ANIMATIONS_PART2 = True
-SKIP_ANIMATIONS_PART2_TIMELINE = True
-# SKIP_ANIMATIONS_PART2_CODE_TRANSFORMATION = True
-SKIP_ANIMATIONS_PART3 = True
+SKIP_ANIMATIONS = False
+SKIP_ANIMATIONS_INTRO = False
+SKIP_ANIMATIONS_PART1 = False
+SKIP_ANIMATIONS_PART2 = False
+SKIP_ANIMATIONS_PART2_TIMELINE = False
+# SKIP_ANIMATIONS_PART2_CODE_TRANSFORMATION = False
+SKIP_ANIMATIONS_PART3 = False
 
 config.background_color = FREYA_GRAY
 
@@ -229,7 +229,7 @@ class BasicExample(Slide):
         # title_about.to_edge(UL)
 
         text_bio = Text("QGIS Developer with a focus on:\n• model designer\n• UX design\n" \
-        "• hopefully after this conference\n on the temporal controller\n\n" \
+        "• hopefully after this conference\n on the temporal controller too\n\n" \
         "Urban planner working on mobility issues").scale(0.65)
         self.add(text_bio.to_edge(RIGHT))
         title_about.next_to(text_bio, UP).align_to(text_bio, LEFT)
@@ -243,6 +243,8 @@ class BasicExample(Slide):
 
 
         self.next_slide(skip_animations=SKIP_ANIMATIONS_INTRO) 
+
+        self.clear()
     
         intro_video = VideoMobject("./images/to_circle_intro_video.mp4")
         intro_video.scale(0.6).to_edge(LEFT)
@@ -1415,39 +1417,6 @@ And more functions inspired\n by shaders and Blender""")
 
 
         self.wait()
-        self.next_slide(skip_animations=False)
-
-        self.clear()
-
-        mockup_text = Text("Quick'n dirty mockups").to_edge(UP)
-        self.add(mockup_text)
-
-        target_image_height_mockup = 4.5
-        add_keyframe_img = ImageMobject("./images/mockup/add_keyframe.png").scale_to_fit_height(target_image_height_mockup)
-        add_keyframe_img.to_edge(LEFT)
-
-        
-        self.add(add_keyframe_img)
-
-        self.wait()
-
-
-        self.remove(add_keyframe_img)
-
-        edit_keyframe_img = ImageMobject("./images/mockup/edit_keyframe.png").scale_to_fit_height(target_image_height_mockup)
-        edit_keyframe_img.to_edge(LEFT)
-        self.add(edit_keyframe_img)
-
-
-        self.next_slide(skip_animations=False)
-
-        self.remove(edit_keyframe_img)
-
-        timeline_keyframe_img = ImageMobject("./images/mockup/timeline.png").scale_to_fit_height(target_image_height_mockup)
-        # edit_keyframe_img.to_edge(LEFT)
-        self.add(timeline_keyframe_img)
-
-        self.wait()
 
         self.next_slide(skip_animations=False)
         self.clear()
@@ -1607,6 +1576,45 @@ And more functions inspired\n by shaders and Blender""")
 
         self.wait()
         self.next_slide(skip_animations=False)
+
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+
+        self.clear()
+
+        mockup_text = Text("Quick'n dirty mockups").to_edge(UP)
+        self.add(mockup_text)
+
+        target_image_height_mockup = 4.5
+        add_keyframe_img = ImageMobject("./images/mockup/add_keyframe.png").scale_to_fit_height(target_image_height_mockup)
+        add_keyframe_img.to_edge(LEFT)
+
+        
+        self.add(add_keyframe_img)
+
+        self.wait()
+
+
+        self.remove(add_keyframe_img)
+
+        edit_keyframe_img = ImageMobject("./images/mockup/edit_keyframe.png").scale_to_fit_height(target_image_height_mockup)
+        edit_keyframe_img.to_edge(LEFT)
+        self.add(edit_keyframe_img)
+        self.wait()
+
+        self.next_slide(skip_animations=False)
+
+        self.remove(edit_keyframe_img)
+
+        timeline_keyframe_img = ImageMobject("./images/mockup/timeline.png").scale_to_fit_height(target_image_height_mockup)
+        # edit_keyframe_img.to_edge(LEFT)
+        self.add(timeline_keyframe_img)
+
+        self.wait()
+        self.next_slide(skip_animations=False)
+        
+
 
         self.clear()
         whatsnext_text = Text("what's next ? I need your help\n if you know any of:").to_edge(UP)
