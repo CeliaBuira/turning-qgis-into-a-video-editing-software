@@ -1036,6 +1036,25 @@ with_variable('t',
 
 
         self.wait( line_animation.duration() )
+
+        self.next_slide(skip_animations=False)
+        self.clear()
+
+        title = Text("Builtin temporal filter for Vector and Raster").scale(0.7)
+        title.to_edge(UP)
+        self.add(title)
+
+        img_builtin_temporal_filter = ImageMobject("./images/exemples/built-in temporal fitler.png").scale_to_fit_height(4.6)
+        self.add(img_builtin_temporal_filter)
+
+        text = Text("Vector                             Raster")
+
+        text.next_to(img_builtin_temporal_filter, DOWN)
+        self.add(text)
+
+        self.wait()
+
+
         self.next_slide(skip_animations=SKIP_ANIMATIONS)
         self.clear()
 
