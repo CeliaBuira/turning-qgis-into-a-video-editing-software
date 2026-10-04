@@ -77,6 +77,24 @@ def my_code_step(code_string):
     code_step.to_edge(RIGHT)
     return code_step
 
+def rectangle_from_corners(top_left, bottom_right, **kwargs):
+    width = bottom_right[0] - top_left[0]
+    height = top_left[1] - bottom_right[1]
+    center = (top_left + bottom_right) / 2
+    return Rectangle(width=width, height=height, **kwargs).move_to(center)
+
+def rectangle_from_lines(start_line, end_line):
+
+    epsilon = 0.2
+    half_line_height = start_line.height / 2
+    corner_UL = start_line.get_left() + UP * half_line_height + LEFT * epsilon
+    # corner_DL = keyframe_code.code_lines[3].get_left()+ RIGHT*4
+    corner_DL = end_line.get_right() + DOWN*  half_line_height + RIGHT*2
+    rect1 = rectangle_from_corners(corner_UL, corner_DL )
+    rect1.set_stroke(width=0.5)
+
+    return rect1
+
 @dataclass
 class VideoStatus:
     time: float = 0
@@ -204,6 +222,25 @@ class BasicExample(Slide):
         dot = Dot()
         # self.play(GrowFromCenter(circle), run_time=0.1)
         self.wait()
+
+        self.next_slide(skip_animations=False)
+
+        title_about = Text("About me")
+        # title_about.to_edge(UL)
+
+        text_bio = Text("QGIS Developer with a focus on:\n• model designer\n• UX design\n" \
+        "• hopefully after this conference\n on the temporal controller\n\n" \
+        "Urban planner working on mobility issues").scale(0.65)
+        self.add(text_bio.to_edge(RIGHT))
+        title_about.next_to(text_bio, UP).align_to(text_bio, LEFT)
+        self.add(title_about)
+
+
+        about_me_img = ImageMobject("./images/about_me.png").scale(0.5).to_edge(LEFT)
+        self.add(about_me_img)
+
+        self.wait()
+
 
         self.next_slide(skip_animations=SKIP_ANIMATIONS_INTRO) 
     
@@ -581,7 +618,7 @@ class BasicExample(Slide):
 
 
         self.wait()
-        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2)
+        self.next_slide(skip_animations=False)
         # self.clear()
 
         # python_string = """from manim import *
@@ -633,6 +670,8 @@ class BasicExample(Slide):
 )"""
 
 
+
+
         # code_step_1 = Code(
         #     code_string=expression_step1,
         #     language="haskell",   # often better than "lisp"
@@ -647,6 +686,43 @@ class BasicExample(Slide):
 
         c1 = code_step_1 = my_code_step(expression_step1)
         self.add(code_step_1)
+
+        
+        # r = rectangle_from_corners(
+        #     c1.code_lines[0][0].get_corner(UL), 
+        #     c1.code_lines[0][len("with_variable")].get_corner(DR)
+        #     )
+        # r2 = rectangle_from_corners(
+        #     c1.code_lines[1][0].get_corner(UL), 
+        #     c1.code_lines[1][len("with_variable")].get_corner(DR)
+        #     )
+        
+        # self.add(r, r2)   
+        r1 = SurroundingRectangle(
+            c1.code_lines[0][15], 
+            c1.code_lines[0][23],
+            buff=0.08,
+            color=FREYA_BLUE
+            )
+        
+        r2 = SurroundingRectangle(
+            c1.code_lines[1][20], 
+            c1.code_lines[1][29],
+            buff=0.04,
+            color=FREYA_BLUE
+            )
+
+        r3_tar = SurroundingRectangle(
+            c1.code_lines[0][27], 
+            c1.code_lines[0][62],
+            buff=0.04,
+            color=FREYA_RED
+            )
+        
+
+        self.add(r1, r2, r3_tar)
+
+
 
         explain_step_text = Text("'with_variable', assign a variable to resuse it later in an expression")
         explain_step_text.scale(0.6)
@@ -687,8 +763,15 @@ with_variable('t',
         explain_step_2_text.match_y(explain_step_text)
         explain_step_2_text.match_dim_size(explain_step_text, 2)
 
+        self.remove(code_step_1)
+        self.add(c2)
+
+        rect_c2 = rectangle_from_lines(c2.code_lines[2], c2.code_lines[7])
+        # corner_DL = keyframe_code.code_lines[3].get_right() + DOWN*  half_line_height + RIGHT*2
+        self.add(rect_c2)
         
-        self.play(Transform(code_step_1, c2),  
+        self.play(
+            # Transform(code_step_1, c2),  
                   Wait(video_timeline.duration()),
                   Wait(vid2.duration()),
                   Transform(explain_step_text, explain_step_2_text)
@@ -712,7 +795,7 @@ with_variable('t',
         explain_step_2_1_text.match_y(explain_step_text)
         explain_step_2_1_text.match_dim_size(explain_step_text, 2)
 
-        self.play(Transform(code_step_1, c2),  
+        self.play(#Transform(code_step_1, c2),  
                   Wait(video_timeline.duration()),
                   Wait(vid2_1.duration()),
                   Transform(explain_step_text, explain_step_2_1_text)
@@ -748,7 +831,15 @@ with_variable('t',
         explain_step_3_text.match_y(explain_step_text)
         explain_step_3_text.match_dim_size(explain_step_text, 2)
 
-        self.play(Transform(code_step_1, c3),
+
+        self.remove(c2)
+        self.add(c3)
+
+        rect_c3 = rectangle_from_lines(c3.code_lines[1], c3.code_lines[3])
+        rect2_c3 = rectangle_from_lines(c3.code_lines[8], c3.code_lines[9])
+        self.add(rect_c3, rect2_c3)
+        
+        self.play(#Transform(code_step_1, c3),
                   Wait(video_timeline.duration()),
                   Wait(vid3.duration()),
                   Transform(explain_step_text, explain_step_3_text)
@@ -783,13 +874,16 @@ with_variable('t',
 
 
 
-        explain_step_4_text = Text("Use sine wave surface as z = sin(sqrt(x2+y2))")
+        explain_step_4_text = Text("Use sine wave surface as z = sin(sqrt(x^2+y^    2))")
         explain_step_4_text.match_x(explain_step_text)
         explain_step_4_text.match_y(explain_step_text)
         explain_step_4_text.match_dim_size(explain_step_text, 2)
 
         c4 = my_code_step(expression_step_4)
-        self.play(Transform(code_step_1, c4),
+
+        self.remove(c3)
+        self.add(c4)
+        self.play(#Transform(code_step_1, c4),
                   Wait(video_timeline.duration()),
                   Wait(vid4.duration()),
                   Transform(explain_step_text, explain_step_4_text)
@@ -837,7 +931,10 @@ with_variable('t',
 
         explain_step_text.become(explain_step_5_text)
         c5 = my_code_step(expression_step_5)
-        self.play(Transform(code_step_1, c5),
+
+        self.remove(c4)
+        self.add(c5)
+        self.play(#Transform(code_step_1, c5),
                   Wait(video_timeline.duration()),
                   Wait(vid5.duration()),
                   
@@ -894,8 +991,11 @@ with_variable('t',
 
         c6 = code_step_6 = my_code_step(expression_step_6)
 
+        self.remove(c5)
+        self.add(c6)
+
         # self.add(code_step_6)
-        self.play(Transform(code_step_1, code_step_6), 
+        self.play(#Transform(code_step_1, code_step_6), 
                   Wait(video_timeline.duration()),
                   Wait(vid6.duration()),
                   Transform(explain_step_text, explain_step_6_text)
@@ -1069,7 +1169,7 @@ with_variable('t',
         self.next_slide(skip_animations=False)
         self.clear()
 
-        title = Text("Builtin temporal filter for Vector and Raster").scale(0.7)
+        title = Text("Built-in temporal filter for Vector and Raster").scale(0.7)
         title.to_edge(UP)
         self.add(title)
 
@@ -1197,11 +1297,7 @@ buffer(@geometry, @keyframed_value)
 
         # self.add(keyframe_code.code_lines[2])
 
-        def rectangle_from_corners(top_left, bottom_right, **kwargs):
-            width = bottom_right[0] - top_left[0]
-            height = top_left[1] - bottom_right[1]
-            center = (top_left + bottom_right) / 2
-            return Rectangle(width=width, height=height, **kwargs).move_to(center)
+
         keyframe_code.code_lines[2].get_left()
         
         # Rectangle()
@@ -1344,7 +1440,6 @@ And more functions inspired\n by shaders and Blender""")
 
 
         self.next_slide(skip_animations=False)
-        self.wait()
 
         self.remove(edit_keyframe_img)
 
@@ -1352,24 +1447,19 @@ And more functions inspired\n by shaders and Blender""")
         # edit_keyframe_img.to_edge(LEFT)
         self.add(timeline_keyframe_img)
 
-
-        self.next_slide(skip_animations=False)
         self.wait()
 
-
-
-
-        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
-        # self.remove(common_goal_keyframe)
+        self.next_slide(skip_animations=False)
         self.clear()
 
         funded_by_img = ImageMobject("./images/eyelid_funded.png")
+        funded_by_vid = VideoMobject("./images/pushing_qgis_symbollayer_checkbox.mp4")
 
-        funded_by_coming_up = Text("QoL coming later this year")
+        funded_by_coming_up = Text("Pushing Quality Of Live in QGIS")
         funded_by_coming_up.to_edge(UP)
 
         funded_by_text = Text("funded by")
-        funded_by_text.next_to(funded_by_img, DOWN)
+        funded_by_text.next_to(funded_by_vid, DOWN)
 
         
         qgis_ch_logo = ImageMobject("./images/qgis_ch_logo.png")
@@ -1379,7 +1469,9 @@ And more functions inspired\n by shaders and Blender""")
         funded_by_thanks_text.align_to(funded_by_text, LEFT)
 
         
-        self.add(funded_by_img)
+        # self.add(funded_by_img)
+        self.add (funded_by_vid)
+
         self.add(funded_by_coming_up)
         
         self.add(funded_by_text)
@@ -1387,7 +1479,7 @@ And more functions inspired\n by shaders and Blender""")
         self.add(funded_by_thanks_text)
 
 
-        self.wait()
+        self.wait(funded_by_vid.duration())
         self.next_slide(skip_animations=False)
 
         self.clear()
