@@ -1514,7 +1514,7 @@ And more functions inspired\n by shaders and Blender""")
 
 
         self.wait()
-        self.next_slide(skip_animations=SKIP_ANIMATIONS)
+        self.next_slide(skip_animations=False)
 
         self.clear()
         whatsnext_text = Text("what's next ? I need your help\n if you know any of:").to_edge(UP)
@@ -1567,11 +1567,11 @@ And more functions inspired\n by shaders and Blender""")
         self.add(contacts_me)
         
         contacts = VGroup()
-        contacts.add(Text("celia@opengis.ch"))
+        contacts.add(Text("celia@opengis.ch -> for QGIS development"))
         # contacts.add(Text("Valentin Buira on Linkedin\n"))
 
-        contacts.add(Text("celia.buira@gmail.com"))
-        contacts.add(Text("@cbuira.xyz on tiktok and soon insta"))
+        contacts.add(Text("celia.buira@gmail.com -> For animation, urban planning\ninteractive experience, fun projects... "))
+        contacts.add(Text("@cbuira.xyz on tiktok and insta, I plan to post soon"))
 
         contacts.arrange(direction=DOWN, aligned_edge=LEFT)
         contacts.next_to(contacts_me, DOWN)
