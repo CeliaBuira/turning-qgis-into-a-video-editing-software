@@ -169,7 +169,7 @@ SKIP_ANIMATIONS_PART1 = True
 SKIP_ANIMATIONS_PART2 = True
 SKIP_ANIMATIONS_PART2_TIMELINE = True
 # SKIP_ANIMATIONS_PART2_CODE_TRANSFORMATION = True
-SKIP_ANIMATIONS_PART3 = False
+SKIP_ANIMATIONS_PART3 = True
 
 config.background_color = FREYA_GRAY
 
@@ -1016,14 +1016,24 @@ with_variable('t',
         line_animation_tuto3.next_to(line_animation_tuto2, DOWN)
         line_animation_tuto3.align_to(line_animation_tuto1, LEFT)
 
-
         self.add(line_animation_tuto1)
         self.add(line_animation_tuto2)
         self.add(line_animation_tuto3)
 
         self.add(common_goal_exemple_text)
 
-        
+
+        self.wait( line_animation.duration() )
+        self.next_slide(skip_animations=False)
+        self.clear()
+
+        common_goal_exemple_text = Text("Frequent use case : Animate a point along a line")
+        common_goal_exemple_text.to_edge(UP)
+
+        self.add(common_goal_exemple_text)
+
+
+
 
         self.wait( line_animation.duration() )
         self.next_slide(skip_animations=SKIP_ANIMATIONS)
@@ -1230,6 +1240,7 @@ ease_out_in_sine( 0.25 )
         txt_ease_utils.to_edge(UP)
 
         txt_something_else = Text("""And soon:
+cubic_bezier
 frac
 sign
 ping_pong
@@ -1264,8 +1275,40 @@ And more functions inspired\n by shaders and Blender""")
 
         self.clear()
 
-        mockup_text = Text("Mockup").to_edge(UP)
+        mockup_text = Text("Quick'n dirty mockups").to_edge(UP)
         self.add(mockup_text)
+
+        target_image_height_mockup = 4.5
+        add_keyframe_img = ImageMobject("./images/mockup/add_keyframe.png").scale_to_fit_height(target_image_height_mockup)
+        add_keyframe_img.to_edge(LEFT)
+
+        
+        self.add(add_keyframe_img)
+
+        self.wait()
+
+
+        self.remove(add_keyframe_img)
+
+        edit_keyframe_img = ImageMobject("./images/mockup/edit_keyframe.png").scale_to_fit_height(target_image_height_mockup)
+        edit_keyframe_img.to_edge(LEFT)
+        self.add(edit_keyframe_img)
+
+
+        self.next_slide(skip_animations=False)
+        self.wait()
+
+        self.remove(edit_keyframe_img)
+
+        timeline_keyframe_img = ImageMobject("./images/mockup/timeline.png").scale_to_fit_height(target_image_height_mockup)
+        # edit_keyframe_img.to_edge(LEFT)
+        self.add(timeline_keyframe_img)
+
+
+        self.next_slide(skip_animations=False)
+        self.wait()
+
+
 
 
         self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
@@ -1295,12 +1338,6 @@ And more functions inspired\n by shaders and Blender""")
         self.add(qgis_ch_logo)
         self.add(funded_by_thanks_text)
 
-        self.wait()
-        self.next_slide(skip_animations=True)
-        self.clear()
-
-        video_editor_mockup = Text("mockup video editor / timeline/ keyframe ")
-        self.add(video_editor_mockup)
 
         self.wait()
         self.next_slide(skip_animations=False)
