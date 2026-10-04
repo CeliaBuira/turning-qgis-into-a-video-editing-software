@@ -1024,18 +1024,47 @@ with_variable('t',
 
 
         self.wait( line_animation.duration() )
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
         self.clear()
 
-        common_goal_exemple_text = Text("Frequent use case : Animate a point along a line")
-        common_goal_exemple_text.to_edge(UP)
-
+        common_goal_exemple_text = Text("Frequent use case : Animate a point along a line").scale(0.8)
+        common_goal_exemple_text.to_edge(UL)
         self.add(common_goal_exemple_text)
+
+        line_animation = VideoMobject("./images/exemples/pointalongline.webm")
+        line_animation.to_edge(LEFT)
+        self.add(line_animation)
+
+        line_animation_tuto_alongline = ImageMobject("./images/exemples/alongaline.png").scale(0.45)
+        line_animation_tuto_alongline.next_to(common_goal_exemple_text, DOWN)
+        line_animation_tuto_alongline.to_edge(RIGHT)
+        self.add(line_animation_tuto_alongline)
+
 
 
 
 
         self.wait( line_animation.duration() )
+
+        self.next_slide(skip_animations=SKIP_ANIMATIONS)
+        self.clear()
+
+        common_goal_exemple_text = Text("Frequent use case : Animate a svg along a line").scale(0.8)
+        common_goal_exemple_text.to_edge(UL)
+        self.add(common_goal_exemple_text)
+
+
+        line_animation = VideoMobject("./images/exemples/svgmarkeralongline.webm")
+        line_animation.to_edge(LEFT)
+        self.add(line_animation)
+
+        line_animation_tuto_alongline = ImageMobject("./images/exemples/svgmarkeralongaline.png").scale(0.5)
+        line_animation_tuto_alongline.to_edge(RIGHT)
+        self.add(line_animation_tuto_alongline)
+   
+
+        self.wait( line_animation.duration() )
+
 
         self.next_slide(skip_animations=False)
         self.clear()
