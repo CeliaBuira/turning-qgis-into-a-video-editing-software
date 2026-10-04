@@ -163,11 +163,11 @@ class VideoMobject(ImageMobject):
         return duration_seconds
 
 
-SKIP_ANIMATIONS = False
-SKIP_ANIMATIONS_INTRO = False
-SKIP_ANIMATIONS_PART1 = False
-SKIP_ANIMATIONS_PART2 = False
-SKIP_ANIMATIONS_PART2_TIMELINE = False
+SKIP_ANIMATIONS = True
+SKIP_ANIMATIONS_INTRO = True
+SKIP_ANIMATIONS_PART1 = True
+SKIP_ANIMATIONS_PART2 = True
+SKIP_ANIMATIONS_PART2_TIMELINE = True
 # SKIP_ANIMATIONS_PART2_CODE_TRANSFORMATION = True
 SKIP_ANIMATIONS_PART3 = False
 
@@ -659,7 +659,8 @@ class BasicExample(Slide):
         
         self.next_slide(skip_animations=SKIP_ANIMATIONS_PART2, loop=False)
 
-        self.remove(video_timeline)
+        if not SKIP_ANIMATIONS_PART2_TIMELINE:
+            self.remove(video_timeline)
 
         self.remove(vid1)
         vid2 = VideoMobject("images/steps/out_step2.mp4")
@@ -1085,7 +1086,7 @@ with_variable('t',
         self.add(keyframing_img)
 
         self.wait(keyframe_animation.duration())
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
 
         self.remove(keyframing_img)
 
@@ -1161,7 +1162,7 @@ buffer(@geometry, @keyframed_value)
         else:
             self.wait()
 
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
 
         corner_UL = keyframe_code.code_lines[8].get_left() + UP * half_line_height + LEFT * epsilon + RIGHT* 2
         # corner_DL = keyframe_code.code_lines[3].get_left()+ RIGHT*4
@@ -1170,7 +1171,7 @@ buffer(@geometry, @keyframed_value)
 
         self.play(Transform(rect1, rect2 ))
 
-        self.next_slide(skip_animations=False)
+        self.next_slide(skip_animations=SKIP_ANIMATIONS_PART3)
 
         corner_UL = keyframe_code.code_lines[8].get_left() + UP * half_line_height  + LEFT * epsilon
         # corner_DL = keyframe_code.code_lines[3].get_left()+ RIGHT*4
@@ -1418,6 +1419,14 @@ And more functions inspired\n by shaders and Blender""")
             arrow_qgis2ae
         )
 
+        
+
+
+
+        # self.add(Text("Timeline")).to_edge(UP)
+
+
+
 
         self.wait()
         self.next_slide(skip_animations=SKIP_ANIMATIONS)
@@ -1473,10 +1482,10 @@ And more functions inspired\n by shaders and Blender""")
         self.add(contacts_me)
         
         contacts = VGroup()
-        contacts.add(Text("valentin@opengis.ch"))
-        contacts.add(Text("Valentin Buira on Linkedin\n"))
+        contacts.add(Text("celia@opengis.ch"))
+        # contacts.add(Text("Valentin Buira on Linkedin\n"))
 
-        contacts.add(Text("valentin.buira@gmail.com"))
+        contacts.add(Text("celia.buira@gmail.com"))
         contacts.add(Text("@cbuira.xyz on tiktok and soon insta"))
 
         contacts.arrange(direction=DOWN, aligned_edge=LEFT)
