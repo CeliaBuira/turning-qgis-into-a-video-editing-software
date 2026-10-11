@@ -218,10 +218,10 @@ ALL SLIDE
 
 class BasicExample(Slide):
     def construct(self):
-        circle = Circle(radius=3, color=BLUE)
-        dot = Dot()
-        # self.play(GrowFromCenter(circle), run_time=0.1)
-        self.wait()
+        # circle = Circle(radius=3, color=BLUE)
+        # dot = Dot()
+        # # self.play(GrowFromCenter(circle), run_time=0.1)
+        # self.wait()
 
         self.next_slide(skip_animations=False)
 
