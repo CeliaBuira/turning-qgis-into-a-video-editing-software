@@ -8,4 +8,7 @@ manim-slides render testcodeobject.py && manim-slides present ConvertExample
 manim render main.py
 
 
+
+manim-slides present BasicExample
+
 python -m idlelib.idle
