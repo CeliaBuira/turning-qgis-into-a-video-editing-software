@@ -1607,16 +1607,6 @@ And more functions inspired\n by shaders and Blender""")
         self.add(mockup_text)
 
         target_image_height_mockup = 4.5
-        add_keyframe_img = ImageMobject("./images/mockup/add_keyframe.png").scale_to_fit_height(target_image_height_mockup)
-        add_keyframe_img.to_edge(LEFT)
-
-        
-        self.add(add_keyframe_img)
-
-        self.wait()
-
-
-        self.remove(add_keyframe_img)
 
         edit_keyframe_img = ImageMobject("./images/mockup/edit_keyframe.png").scale_to_fit_height(target_image_height_mockup)
         edit_keyframe_img.to_edge(LEFT)
