@@ -1681,7 +1681,7 @@ And more functions inspired\n by shaders and Blender""")
         # contacts.add(Text("Valentin Buira on Linkedin\n"))
 
         contacts.add(Text("celia.buira@gmail.com -> For animation, urban planning\ninteractive experience, fun projects... "))
-        contacts.add(Text("@cbuira.xyz on tiktok and insta, I plan to post soon"))
+        contacts.add(Text("@celiabuira on tiktok and insta, I plan to post soon"))
 
         contacts.arrange(direction=DOWN, aligned_edge=LEFT)
         contacts.next_to(contacts_me, DOWN)
